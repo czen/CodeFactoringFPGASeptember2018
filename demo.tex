@@ -25,7 +25,7 @@
 \setwatermark{\includegraphics[height=9cm]{img/watermark1.png}}
 
 
-\title{О некоторых преобразованиях для высокоуровневого синтеза на ПЛИС}
+\title{Разработка преобразования code factoring для ПЛИС}
 \subtitle{}
 \date{\today}
 \author{Баглий Антон}
@@ -36,119 +36,64 @@
 \maketitle
 
 
-\begin{frame}{ПЛИС}
-  \framesubtitle{Что это такое}
-   
-  \begin{columns}
-    \column{.7\textwidth}
-      \begin{itemize}
-        \item микрочип из большого набора однотипных элементов, связи между которыми можно настраивать
-        \item набор ПО от производителя для компиляции низкоуровневого описания схемы под конкретный чип
-        \item удобная платформа для любой вычислительной электроники
-      \end{itemize}
-
-    \column{.3\textwidth}
-      \begin{block}{В целом}
-         Возможность сконструировать любую электронную схему
-      \end{block}
-  \end{columns}		  
-\end{frame}
-
-\begin{frame}[fragile]
-\frametitle{ПЛИС}
-  \framesubtitle{Как они программируются}
-  \begin{columns}
-    \column{.2\textwidth}
-      \begin{itemize}
-        \item VHDL
-        \item Verilog
-      \end{itemize}
-      
-      \begin{block}{Низкий уровень}
-         Тяжелее в написании и отладке. 
-      \end{block}
-
-    \column{.8\textwidth}
-      
-      
-\begin{lstlisting}[frame=single]
-begin
-  regs : process (clk, rstx)
-  begin  -- process regs
-    if rstx = '0' then         
-      r1reg <= (others => '0');
-    elsif clk'event and clk = '1' then  
-      if glock = '0' then
-        if t1load = '1' then
-          case t1opcode is
-            when OPC_CALCINDEX32 =>
-              r1reg <= (others => '0');
-              r1reg <= (t1data + 1) mod 4 + t2data * 4;
-            when others =>
-              null;
-          end case;
-        end if;
-      end if;
-    end if;
-  end process regs;
-  r1data <= r1reg;
-end rtl;
-\end{lstlisting}
-\label{clone_listing}
-      
-  \end{columns}
-  
-\end{frame}
-
-\begin{frame}[fragile]
-\frametitle{ПЛИС}
-  \framesubtitle{Как они программируются}
-  \begin{columns}
-    \column{.2\textwidth}
-      
-      По этой программе придется создать набор взаимодействующих конечных автоматов,
-         читающих и записывающих данные.
-
-    \column{.8\textwidth}
-      
-      
-\begin{lstlisting}[frame=single]
-for (i = 0; i < length - k; i++)
-bb[i] = 0;
- for (i = k - 1; i >= 0; i--) {
-  feedback = data[i] ^ bb[length - k - 1];
-   if (feedback != 0) {
-    for (j = length - k - 1; j > 0; j--)
-	 if (g[j] != 0)
-	  bb[j] = bb[j - 1] ^ feedback;
-	 else
-	  bb[j] = bb[j - 1];
-	  bb[0] = g[0] && feedback;
-	 } else {
-	  for (j = length - k - 1; j > 0; j--)
-	   bb[j] = bb[j - 1];
-	   bb[0] = 0;
-	  }
-}
-\end{lstlisting}
-\label{encode_listing}
-      
-  \end{columns}
-  
-\end{frame}
-
 % turn off watermark
-\setwatermark{}
+%\setwatermark{}
 
-\begin{frame}{Высокоуровневый синтез}
-  \framesubtitle{Как построить конвейер}
-  \includegraphics[height=8cm]{img/CalcGraphExample.png}
-\end{frame}
 
 \begin{frame}{Высокоуровневый синтез}
   \framesubtitle{Сложности}
-  \includegraphics[height=9cm]{img/HLSFlow1.png}
+  
+  \begin{columns}
+    \column{.3\textwidth}
+      \begin{itemize}
+         \item расписание
+          \item назначение ресурсов
+          \item связывание ресурсов
+  		\end{itemize}
+
+    \column{.7\textwidth}
+      \begin{block}{}
+         \includegraphics[height=8cm]{img/HLSCompromise.png}
+      \end{block}
+  \end{columns}	
+  
+  
 \end{frame}
+
+\begin{frame}{Пространство возможностей}
+  \framesubtitle{Выражения}
+  R = A[1]+A[2]+A[3]+...+A[N]
+  R = (A[1]+A[2])+(A[3]+A[4])+...(A[N-1]+A[N])
+\end{frame}
+
+\begin{frame}{Пространство возможностей}
+  \framesubtitle{Инлайнинг функций}
+  \begin{itemize}
+      \item Поиск баланса
+      \item Обратное преобразование("outlining")
+  \end{itemize}
+  
+\end{frame}
+
+\begin{frame}{Пространство возможностей}
+  \framesubtitle{}
+  
+  \begin{columns}
+    \column{.5\textwidth}
+      \begin{itemize}
+      \item площадь
+      \item память
+      \item скорость
+       \end{itemize}
+
+    \column{.5\textwidth}
+      \begin{block}{}
+          Характеристики могут отличаться на порядки
+      \end{block}
+  \end{columns}	
+  
+\end{frame}
+
 
 \begin{frame}{Архитектуры}
   \framesubtitle{Что такое IP-ядро}
@@ -168,8 +113,6 @@ bb[i] = 0;
          а добавить в готовый универсальный процессор свои расширения (сопроцессор, новые инструкции).
       \end{block}
   \end{columns}	
-  
-  
 \end{frame}
 
 \begin{frame}{Архитектуры}
@@ -179,14 +122,31 @@ bb[i] = 0;
           \item Набор функциональных модулей
           \item Регистровый файл как узкое место
   	\end{itemize}
+\end{frame}
+
+\begin{frame}{Архитектуры}
+  \framesubtitle{TTA}
   
+  \begin{columns}
+    \column{.4\textwidth}
+       \begin{itemize}
+          \item Простота модицикации
+          \item Еще более сложный компилятор
+          \item Проще экспериментировать с диапазоном характеристик разрабатываемой схемы
+  	\end{itemize}
+
+    \column{.6\textwidth}
+      \begin{block}{}
+        \includegraphics[height=6cm]{img/TTAExample.png}
+      \end{block}
+  \end{columns}	
 \end{frame}
 
 \begin{frame}{Архитектуры}
   \framesubtitle{TTA-архитектуры}
    \begin{itemize}
           \item Простота модицикации
-          \item Более сложный компилятор
+          \item Еще более сложный компилятор
           \item Проще экспериментировать с диапазоном характеристик разрабатываемой схемы
   	\end{itemize}
   \nocite{Corporaal1994}
@@ -197,10 +157,9 @@ bb[i] = 0;
 %  
 %\end{frame}
 
-\begin{frame}{Архитектуры}
-  \framesubtitle{Сo-design}
-  
-\end{frame}
+%\begin{frame}{Архитектуры}
+%  \framesubtitle{Сo-design}
+%\end{frame}
 
 \begin{frame}{Code factoring}
   \framesubtitle{GCC, SSA}
